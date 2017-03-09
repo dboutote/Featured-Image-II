@@ -166,8 +166,6 @@ add_action( 'wp_ajax_nopriv_fitwo-get-post-thumbnail-html', 'fitwo_ajax_mb_thumb
 add_action( 'wp_ajax_fitwo-get-post-thumbnail-html', 'fitwo_ajax_mb_thumbnail_html', 0, 2 );
 
 
-
-
 /**
  *  Save the stored meta data
  *
@@ -176,20 +174,29 @@ add_action( 'wp_ajax_fitwo-get-post-thumbnail-html', 'fitwo_ajax_mb_thumbnail_ht
  */
 function fitwo_save_meta_box( $post_id, $post ){
 
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ){
+	if( ! get_post( $post_id ) ){
 		return $post_id;
 	}
+
+	if( 'auto-draft' === $post->post_status || 'revision' == $post->post_type ){
+		return $post_id;
+	}
+
+	/* skip auto-running jobs */
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ){ return $post_id; }
+	if ( defined( 'DOING_AJAX' ) && DOING_AJAX ){ return $post_id; }
+	if ( defined( 'DOING_CRON' ) && DOING_CRON ){ return $post_id; }
 
     if ( ! isset( $_POST["fitwo-box-nonce"] ) || ! wp_verify_nonce( $_POST["fitwo-box-nonce"], basename( __FILE__ ) ) ){
 		return $post_id;
 	}
 
+	/* check if user can edit */
 	$ptype = get_post_type_object( $post->post_type );
-
 	if ( ! current_user_can( $ptype->cap->edit_posts ) ) {
 		return $post_id;
 	}
-	
+
 	if( ! empty( $_POST['_fitwo_thumbnail_id'] ) ) :
 		if( '-1' ===  $_POST['_fitwo_thumbnail_id'] ){
 			delete_post_meta( $post_id, "_fitwo_thumbnail_id" );
@@ -200,36 +207,3 @@ function fitwo_save_meta_box( $post_id, $post ){
 
 }
 add_action( 'save_post', 'fitwo_save_meta_box', 10, 2 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
