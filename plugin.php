@@ -29,17 +29,6 @@ function fi2_enqueue_admin_scripts( $hook ){
 	if( 'post.php' == $hook || 'post-new.php' === $hook ){
 		wp_enqueue_media();
 		wp_enqueue_script( 'fi2-images', plugins_url( '/js/admin.js', __FILE__ ), '', '', true );
-
-		// Term ID
-		$term_id = ( ! empty( $_GET['tag_ID'] ) ) ? (int) $_GET['tag_ID'] : 0;
-
-		wp_localize_script( 'atf-images', 'l10n_ATF_Images', array(
-			'insertMediaTitle'   => esc_html__( 'Choose an Image', 'atf-images' ),
-			'insertIntoPost'     => esc_html__( 'Set featured image', 'atf-images' ),
-			'removeFromPost'     => esc_html__( 'Set featured image', 'atf-images' ),
-			'term_id'		     => $term_id,
-		) );
-
 	}
 }
 add_action( 'admin_enqueue_scripts',  'fi2_enqueue_admin_scripts' );
@@ -51,7 +40,15 @@ add_action( 'admin_enqueue_scripts',  'fi2_enqueue_admin_scripts' );
  *  @since 1.0.0
  */
 function fi2_register_meta_box(){
-	add_meta_box('postimage2div', esc_html( 'Second Featured Image' ), 'fitwo_inner_meta', null, 'side', 'low' );
+	
+	$screen = get_current_screen();
+	
+	$add_meta_box = apply_filters( 'fi2_register_meta_box', true, $screen );
+	
+	if( $add_meta_box ){
+		add_meta_box('postimage2div', esc_html( 'Second Featured Image' ), 'fitwo_inner_meta', null, 'side', 'low' );
+	}
+	
 }
 add_action( 'add_meta_boxes', 'fi2_register_meta_box' );
 
